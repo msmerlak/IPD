@@ -49,6 +49,11 @@ function create_model(;
     reproduction_rate = 1e-1,
     seed = 1)
 
+    if multiplicative 
+        selection_function = a -> exp(a.score)
+    else
+        selection_function = a -> a.score
+    end
 
     properties = Dict(
         :RSTP => RSTP, 
@@ -57,7 +62,8 @@ function create_model(;
         :σ => mutational_effect, 
         :multiplicative => multiplicative, 
         :init => initial_strategy, 
-        :r => reproduction_rate)
+        :r => reproduction_rate,
+        :selection => selection_function)
     
     model = AgentBasedModel(
         Mem1Player, 
@@ -106,19 +112,10 @@ function player_step!(player, model)
 
     player.score = 1e-6
     play_matches!(player, model)
-
-
     mutate!(player, model)
     
 end
 
 function WF_sampling!(model)
-    if model.multiplicative
-        Agents.sample!(model, model.n, a -> exp(a.score))
-    else
-        Agents.sample!(model, model.n, a -> a.score)
-    end
-    # scores = [a.score for a in values(model.agents)]
-    # #println(scores)
-    # println(minimum(scores), "  ", maximum(scores))
+    Agents.sample!(model, model.n, model.selection)
 end
