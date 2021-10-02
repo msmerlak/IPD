@@ -1,38 +1,22 @@
 using DrWatson
 @quickactivate "IPD"
 
+include("memory-one-IPD.jl")
+
 using Agents
 using LinearAlgebra:det, dot
 using Distributions:Normal
 using Random:MersenneTwister
 using KrylovKit:eigsolve
 
-const RAND = [.25, .25, .25, .25]
-const TFT = [1., 0, 1., 0.]
+RAND = [.25, .25, .25, .25]
+TFT = [1., 0, 1., 0.]
 
 mutable struct Mem1Player <: AbstractAgent
     id::Int
     pos::NTuple{2, Int}
     strategy::Vector{Float64}
     score::Float64
-end
-
-## Press-Dyson determinant
-
-# p = P(C|CC, CD, DC, DD)
-
-function D(p, q, f)
-    return @fastmath det([[-1 + p[1]*q[1], - 1 + p[1], - 1 + q[1], f[1]] [p[2]*q[3], -1 + p[2], q[3], f[2]] [p[3]*q[2], p[3], -1+q[2], f[3]] [p[4]*q[4], p[4], q[4], f[4]]])
-end
-
-function M(p, q)
-    qq = [q[1], q[3], q[2], q[4]]
-    return @. [p*qq p*(1-qq) (1-p)*qq (1-p)*(1-qq)]
-end
-
-function v(p, q)
-    val, vec, conv  = eigsolve(transpose(M(p, q)), 1, :LR)
-    return real(vec[1]./sum(vec[1]))
 end
 
 function match!(players::Tuple{Mem1Player, Mem1Player}, model)
@@ -45,23 +29,41 @@ function match!(players::Tuple{Mem1Player, Mem1Player}, model)
     if p != q
         X.score += D(p, q, S₁)/D(p, q, ones(length(p)))
         Y.score += D(p, q, S₂)/D(p, q, ones(length(p)))
-    else # other way of computing the same score that also works with degenerate strategies
+    else # other way of computing the same score that also works when identical strategies meet
         X.score += dot(v(p, q), S₁)
         Y.score += dot(v(p, q), S₂)
     end
 
-    # if D(p, q, S₁) > D(p, q, S₂) && rand(model.rng) < model.r
-    #     add_agent!(model, X.pos, X.strategy, X.score)
-    # end
     return
 end
 
-function create_model(; multiplicative = false, ϵ = 0., RSTP = [3., 0., 5., 1.], popsize = 500, tournament_size = 10, mutational_effect = 1e-2, space = nothing, seed = 1, initial_strategy = RAND, reproduction_rate = 1e-1)
+function create_model(; 
+    multiplicative = false, 
+    ϵ = 1e-10, 
+    RSTP = [3., 0., 5., 1.], 
+    popsize = 500, 
+    tournament_size = 10, 
+    mutational_effect = 1e-2, 
+    space = nothing, 
+    initial_strategy = RAND, 
+    reproduction_rate = 1e-1,
+    seed = 1)
 
 
-    properties = Dict(:RSTP => RSTP, :n => popsize, :t => tournament_size, :σ => mutational_effect, :multiplicative => multiplicative, :init => initial_strategy, :r => reproduction_rate)
+    properties = Dict(
+        :RSTP => RSTP, 
+        :n => popsize, 
+        :t => tournament_size, 
+        :σ => mutational_effect, 
+        :multiplicative => multiplicative, 
+        :init => initial_strategy, 
+        :r => reproduction_rate)
     
-    model = AgentBasedModel(Mem1Player, space, properties = properties, rng = MersenneTwister(seed))
+    model = AgentBasedModel(
+        Mem1Player, 
+        space, 
+        properties = properties, 
+        rng = MersenneTwister(seed))
 
     if multiplicative
         @. RSTP = log(RSTP + ϵ)
@@ -104,18 +106,19 @@ function player_step!(player, model)
 
     player.score = 1e-6
     play_matches!(player, model)
-    if model.multiplicative
-        player.score = exp(player.score)
-    end
+
 
     mutate!(player, model)
     
-    # if model.space !== nothing
-    #     walk!(player, rand, model)
-    # end
 end
 
-function sampling!(model)
-    #Agents.sample!(model, model.n)
-    Agents.sample!(model, model.n, a -> exp(a.score))
+function WF_sampling!(model)
+    if model.multiplicative
+        Agents.sample!(model, model.n, a -> exp(a.score))
+    else
+        Agents.sample!(model, model.n, a -> a.score)
+    end
+    # scores = [a.score for a in values(model.agents)]
+    # #println(scores)
+    # println(minimum(scores), "  ", maximum(scores))
 end

@@ -1,63 +1,61 @@
 PARALLEL = true
 
 using Distributed
+using DataFrames, Plots, InteractiveDynamics, MultivariateStats, StatsBase
+
+
 PARALLEL && addprocs(10)
-@everywhere include("IPD.jl")
+@everywhere include("../src/IPD.jl")
 
 models = [create_model(
-        mutational_effect = 5*1e-3, 
+        mutational_effect = 1e-2, 
         tournament_size = 10, 
-        popsize = 100, 
-        multiplicative = false, 
+        popsize = 200, 
+        multiplicative = true, 
         seed = x,
-        initial_strategy = rand(4)
+        initial_strategy = TFT
         ) for x in rand(UInt8, 10)]
 
-adata, _ = ensemblerun!(models, player_step!, sampling!, 1000, adata = [:score, :strategy], parallel = true)
+adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 1000, adata = [:score, :strategy], parallel = true)
 
 
-using DataFrames, Plots, InteractiveDynamics
 result =  groupby(adata, :step)
 
 
-using MultivariateStats, StatsBase
 p = plot()
 for realization in groupby(adata, :ensemble)
     st = [mean(df.strategy) for df in groupby(realization, :step)]
     mean_strategies = reduce(hcat, st) |> transpose 
-    #pca = projection(fit(PCA, mean_strategies, maxoutdim = 2))
-    #println(pca)
     plot!(p, mean_strategies[:, 1], mean_strategies[:, 2])
 end
-current()
+p12 = current()
 
 
 p = plot()
 for realization in groupby(adata, :ensemble)
     st = [mean(df.strategy) for df in groupby(realization, :step)]
     mean_strategies = reduce(hcat, st) |> transpose 
-    #pca = projection(fit(PCA, mean_strategies, maxoutdim = 2))
-    #println(pca)
     plot!(p, mean_strategies[:, 3], mean_strategies[:, 4])
 end
-current()
+p34 = current()
+
+
+plot(p12, p34)
+# p = plot()
+# for realization in groupby(adata, :ensemble)
+#     st = [mean(df.strategy) for df in groupby(realization, :step)]
+#     mean_strategies = reduce(hcat, st) |> transpose 
+
+#     plot!(p, mean_strategies[:, 1], mean_strategies[:, 2], mean_strategies[:, 3])
+# end
+# current()
 
 p = plot()
 for realization in groupby(adata, :ensemble)
     st = [mean(df.strategy) for df in groupby(realization, :step)]
     mean_strategies = reduce(hcat, st) |> transpose 
-    #pca = projection(fit(PCA, mean_strategies, maxoutdim = 2))
     #println(pca)
-    plot!(p, mean_strategies[:, 1], mean_strategies[:, 2], mean_strategies[:, 3])
-end
-current()
-
-p = plot()
-for realization in groupby(adata, :ensemble)
-    st = [mean(df.strategy) for df in groupby(realization, :step)]
-    mean_strategies = reduce(hcat, st) |> transpose 
-    #println(pca)
-    plot!(mean_strategies[:, 1])
+    plot!(mean_strategies[:, 4])
 end
 current()
 
@@ -69,9 +67,9 @@ current()
 
 ## not parallel
 
-model = create_model(multiplicative = false, seed = rand(UInt8))
+model = create_model(multiplicative = true, seed = rand(UInt8))
 
-adata, _ = run!(model, player_step!, sampling!, 1000, adata = [:score, :strategy])
+adata, _ = run!(model, player_step!, WF_sampling!, 1000, adata = [:score, :strategy])
 
 
 result =  groupby(adata, :step)
