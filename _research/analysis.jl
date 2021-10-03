@@ -1,27 +1,26 @@
+using DrWatson
+@quickactivate 
+using Distributed
+using DataFrames, MultivariateStats, StatsBase
+include(srcdir("plotting.jl"))
+
 PARALLEL = true
 
-using Distributed
-using DataFrames, Plots, InteractiveDynamics, MultivariateStats, StatsBase
-include("../src/plotting.jl")
-
-PARALLEL && addprocs(10)
-@everywhere include("../src/IPD.jl")
-
+PARALLEL && addprocs(Sys.CPU_THREADS)
+@everywhere include("src/IPD.jl")
 
 models = [create_model(
-        mutational_effect = 1e-2, 
+        mutational_effect = 5*1e-3, 
         tournament_size = 10, 
         popsize = 200, 
         multiplicative = false, 
         seed = x,
         initial_strategy = TFT
-        ) for x in rand(UInt8, 10)]
+        ) for x in rand(UInt8, 20)]
 
-adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 1000, adata = [:score, :strategy], parallel = true)
+adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 5000, adata = [(:score, mean), (:strategy, mean)], parallel = true)
 
-
-plot([mean(df.score) for df in groupby(adata, :step)], xlabel = "generation", ylabel = "mean score")
-
+# plot([mean(df.score) for df in groupby(filter(player -> length(player.score)> 0, adata), :step)], xlabel = "generation", ylabel = "mean score")
 
 plot_probs(adata)
 
@@ -36,10 +35,7 @@ plot_probs(adata)
 
 p = plot()
 for realization in groupby(adata, :ensemble)
-    st = [mean(df.strategy) for df in groupby(realization, :step)]
-    mean_strategies = reduce(hcat, st) |> transpose 
-    #println(pca)
-    plot!(mean_strategies[:, 4])
+    plot!(reduce(hcat, realization.mean_strategy)[4, :], legend = false)
 end
 current()
 
@@ -60,3 +56,4 @@ current()
 # mean_strategies = reduce(hcat, st) |> transpose 
 
 # plot(mean_strategies)
+

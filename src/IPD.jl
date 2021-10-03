@@ -8,6 +8,7 @@ using LinearAlgebra:det, dot
 using Distributions:Normal
 using Random:MersenneTwister
 using KrylovKit:eigsolve
+using StatsBase:mean
 
 RAND = [.25, .25, .25, .25]
 TFT = [1., 0, 1., 0.]
@@ -16,7 +17,7 @@ mutable struct Mem1Player <: AbstractAgent
     id::Int
     pos::NTuple{2, Int}
     strategy::Vector{Float64}
-    score::Float64
+    score::Vector{Float64}
 end
 
 function match!(players::Tuple{Mem1Player, Mem1Player}, model)
@@ -27,11 +28,11 @@ function match!(players::Tuple{Mem1Player, Mem1Player}, model)
     S₂= [R, T, S, P]
 
     if p != q
-        X.score += D(p, q, S₁)/D(p, q, ones(length(p)))
-        Y.score += D(p, q, S₂)/D(p, q, ones(length(p)))
+        push!(X.score, D(p, q, S₁)/D(p, q, ones(length(p))))
+        push!(Y.score, D(p, q, S₂)/D(p, q, ones(length(p))))
     else # other way of computing the same score that also works when identical strategies meet
-        X.score += dot(v(p, q), S₁)
-        Y.score += dot(v(p, q), S₂)
+        push!(X.score, dot(v(p, q), S₁))
+        push!(Y.score, dot(v(p, q), S₂))
     end
 
     return
@@ -50,9 +51,9 @@ function create_model(;
     seed = 1)
 
     if multiplicative 
-        selection_function = a -> exp(a.score)
+        selection_function = a -> exp(mean(a.score))
     else
-        selection_function = a -> a.score
+        selection_function = a -> mean(a.score)
     end
 
     properties = Dict(
@@ -75,14 +76,14 @@ function create_model(;
         @. RSTP = log(RSTP + ϵ)
     end
 
-    initial_score = .1
+    
     
     if space === nothing 
         for id in 1:popsize
-            add_agent!(Mem1Player(id, (1,1), initial_strategy, initial_score), model)
+            add_agent!(Mem1Player(id, (1,1), initial_strategy, Float64[]), model)
         end
     else
-        fill_space!(model, initial_strategy, initial_score)
+        fill_space!(model, initial_strategy, Float64[])
     end
     return model
 end
@@ -109,13 +110,16 @@ function window(x)
 end
 
 function player_step!(player, model)
-
-    player.score = 1e-6
     play_matches!(player, model)
     mutate!(player, model)
-    
 end
 
 function WF_sampling!(model)
+    # Wright-Fisher sampling
     Agents.sample!(model, model.n, model.selection)
+
+    # Reset scores
+    for a in values(model.agents)
+        a.score = Float64[]
+    end
 end
