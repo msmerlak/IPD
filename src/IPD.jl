@@ -1,7 +1,7 @@
 using DrWatson
 @quickactivate "IPD"
 
-include("memory-one-IPD.jl")
+include(srcdir("memory-one-IPD.jl"))
 
 using Agents
 using LinearAlgebra:det, dot
@@ -10,8 +10,11 @@ using Random:MersenneTwister
 using KrylovKit:eigsolve
 using StatsBase:mean
 
+const ID_PAYOFFS = [3., 0., 5., 1.]
+
 RAND = [.25, .25, .25, .25]
 TFT = [1., 0, 1., 0.]
+
 
 mutable struct Mem1Player <: AbstractAgent
     id::Int
@@ -20,70 +23,49 @@ mutable struct Mem1Player <: AbstractAgent
     score::Vector{Float64}
 end
 
-function match!(players::Tuple{Mem1Player, Mem1Player}, model)
-    X, Y = players
-    p, q = X.strategy, Y.strategy
-    R, S, T, P = model.RSTP
-    S₁= [R, S, T, P]
-    S₂= [R, T, S, P]
+function match!((X, Y)::Tuple{Mem1Player, Mem1Player}, model)
 
-    if p != q
-        push!(X.score, D(p, q, S₁)/D(p, q, ones(length(p))))
-        push!(Y.score, D(p, q, S₂)/D(p, q, ones(length(p))))
+    if X.strategy != Y.strategy
+        Z = D(X.strategy, Y.strategy, ones(4))
+        push!(X.score, D(X.strategy, Y.strategy, model.RSTP)/Z)
+        push!(Y.score, D(Y.strategy, X.strategy, model.RSTP)/Z)
     else # other way of computing the same score that also works when identical strategies meet
-        push!(X.score, dot(v(p, q), S₁))
-        push!(Y.score, dot(v(p, q), S₂))
+        push!(X.score, dot(v(X.strategy, Y.strategy), model.RSTP))
+        push!(Y.score, dot(v(Y.strategy, X.strategy), model.RSTP))
     end
 
     return
 end
 
-function create_model(; 
-    multiplicative = false, 
-    ϵ = 1e-10, 
-    RSTP = [3., 0., 5., 1.], 
-    popsize = 500, 
-    tournament_size = 10, 
-    mutational_effect = 1e-2, 
-    space = nothing, 
-    initial_strategy = RAND, 
-    reproduction_rate = 1e-1,
-    seed = 1)
 
-    if multiplicative 
-        selection_function = a -> exp(mean(a.score))
+function create_model(p; space = nothing)
+
+    properties = deepcopy(p)
+
+    if properties[:multiplicative] 
+        properties[:selection] = a -> exp(mean(a.score))
     else
-        selection_function = a -> mean(a.score)
+        properties[:selection] = a -> mean(a.score)
     end
 
-    properties = Dict(
-        :RSTP => RSTP, 
-        :n => popsize, 
-        :t => tournament_size, 
-        :σ => mutational_effect, 
-        :multiplicative => multiplicative, 
-        :init => initial_strategy, 
-        :r => reproduction_rate,
-        :selection => selection_function)
     
     model = AgentBasedModel(
         Mem1Player, 
         space, 
         properties = properties, 
-        rng = MersenneTwister(seed))
+        rng = MersenneTwister(properties[:seed]))
 
-    if multiplicative
-        @. RSTP = log(RSTP + ϵ)
+    if model.multiplicative
+        @. model.RSTP = log(model.RSTP + properties[:ϵ])
     end
 
     
-    
-    if space === nothing 
-        for id in 1:popsize
-            add_agent!(Mem1Player(id, (1,1), initial_strategy, Float64[]), model)
+    if model.space === nothing 
+        for id in 1:model.n
+            add_agent!(Mem1Player(id, (1,1), properties[:init], Float64[]), model)
         end
     else
-        fill_space!(model, initial_strategy, Float64[])
+        fill_space!(model, properties[:init], Float64[])
     end
     return model
 end
@@ -106,7 +88,7 @@ function mutate!(player, model)
 end
 
 function window(x)
-    return min(max(x, 1e-6), 1-1e-6)
+    return min(max(x, 0.), 1.)
 end
 
 function player_step!(player, model)
