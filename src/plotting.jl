@@ -25,5 +25,5 @@ function plot_probs(adata; title = nothing)
 
 
     plot(p12, p34, title = title)
-    
+    save()
 end

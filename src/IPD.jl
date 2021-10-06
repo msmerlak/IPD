@@ -4,7 +4,6 @@ using DrWatson
 include(srcdir("memory-one-IPD.jl"))
 
 using Agents
-using LinearAlgebra:det, dot
 using Distributions:Normal, Bernoulli
 using Random:MersenneTwister
 using NaNMath, StatsBase
@@ -27,8 +26,8 @@ end
 
 function match!((X, Y)::Tuple{Mem1Player, Mem1Player}, model)
 
-    Sx = D(X.strategy, Y.strategy, model.RSTP)/D(X.strategy, Y.strategy, ones(4))
-    Sy = D(Y.strategy, X.strategy, model.RSTP)/D(Y.strategy, X.strategy, ones(4))
+    Sx = Δ(X.strategy, Y.strategy, model.RSTP)/D(X.strategy, Y.strategy, ones(4))
+    Sy = Δ(Y.strategy, X.strategy, model.RSTP)/D(Y.strategy, X.strategy, ones(4))
 
 
     if !isfinite(Sx) || !isfinite(Sy)
@@ -82,7 +81,7 @@ end
 
 function play_matches!(player, model)
         if model.space === nothing
-            competitors = [competitor.second for competitor in rand(model.rng, filter(a -> a.second != player, model.agents), model.t)]
+            competitors = [competitor.second for competitor in filter(a -> a.second != player, rand(model.rng, model.agents, model.t))]
         else
             competitors = nearby_agents(player, model)
         end
@@ -92,7 +91,7 @@ function play_matches!(player, model)
 end
 
 function mutate!(player, model)
-    player.strategy = player.strategy + rand(model.rng, Normal(0, model.σ), 4)
+    player.strategy += rand(model.rng, Normal(0, model.σ), 4)
     player.strategy = map(s -> window(s, model), player.strategy)
     
     if rand(model.rng, Bernoulli(model.m))
@@ -111,6 +110,7 @@ function window(x, model)
     end
 end
 
+
 function player_step!(player, model)
     mutate!(player, model)
     play_matches!(player, model)
@@ -124,8 +124,6 @@ function WF_sampling!(model)
         a.fitness = model.selection(a)
         a.scores = Float64[]
     end
-
-
 
     Agents.sample!(model, model.n, :fitness)
     model.time += 1
