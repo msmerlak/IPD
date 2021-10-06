@@ -24,24 +24,6 @@ mutable struct Mem1Player <: AbstractAgent
     share::Bool
 end
 
-function match!((X, Y)::Tuple{Mem1Player, Mem1Player}, model)
-
-    Sx = Δ(X.strategy, Y.strategy, model.RSTP)/D(X.strategy, Y.strategy, ones(4))
-    Sy = Δ(Y.strategy, X.strategy, model.RSTP)/D(Y.strategy, X.strategy, ones(4))
-
-
-    if !isfinite(Sx) || !isfinite(Sy)
-
-        Sx = dot(v(X.strategy, Y.strategy), model.RSTP)
-        Sy = dot(v(Y.strategy, X.strategy), model.RSTP)
-
-    end
-
-    push!(X.scores, Sx)
-    push!(Y.scores, Sy)
-    return
-end
-
 
 function create_model(p; initial_strategy = RAND, space = nothing, rng)
 
@@ -79,37 +61,53 @@ function create_model(p; initial_strategy = RAND, space = nothing, rng)
     return model
 end
 
+
+function match!((X, Y)::Tuple{Mem1Player, Mem1Player}, model)
+    
+    Z = Δ(X.strategy, Y.strategy, ones(4))
+    Sx = Δ(X.strategy, Y.strategy, model.RSTP)/Z
+    Sy = Δ(Y.strategy, X.strategy, model.RSTP)/Z
+
+
+    if !isfinite(Sx) || !isfinite(Sy)
+
+        Sx = dot(v(X.strategy, Y.strategy), model.RSTP)
+        Sy = dot(v(Y.strategy, X.strategy), model.RSTP)
+
+    end
+
+    push!(X.scores, Sx)
+    push!(Y.scores, Sy)
+    return 
+end
+
+
 function play_matches!(player, model)
         if model.space === nothing
             competitors = [competitor.second for competitor in filter(a -> a.second != player, rand(model.rng, model.agents, model.t))]
         else
             competitors = nearby_agents(player, model)
         end
+        
         for competitor in competitors
             match!((player, competitor), model)
         end
 end
 
+
 function mutate!(player, model)
     player.strategy += rand(model.rng, Normal(0, model.σ), 4)
-    player.strategy = map(s -> window(s, model), player.strategy)
-    
-    if rand(model.rng, Bernoulli(model.m))
+    window!(player.strategy, model)
+    if model.m > 0 || rand(model.rng, Bernoulli(model.m))
         player.share = !player.share
     end
     return
 end
 
-function window(x, model)
-    if 0. <= x <= 1.
-        return x
-    elseif x < 0.
-        return 1e-6*rand(model.rng)
-    elseif x > 1.
-        return 1. - 1e-6*rand(model.rng)
-    end
+function window!(x, model)
+        @. x = min(max(x, 1e-6*rand(model.rng)), 1. - 1e-6*rand(model.rng))
+    return
 end
-
 
 function player_step!(player, model)
     mutate!(player, model)
