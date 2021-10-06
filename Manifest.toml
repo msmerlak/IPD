@@ -1003,6 +1003,12 @@ git-tree-sha1 = "491a883c4fef1103077a7f648961adbf9c8dd933"
 uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
 version = "2.1.2"
 
+[[MKL]]
+deps = ["Artifacts", "Libdl", "LinearAlgebra", "MKL_jll", "PackageCompiler"]
+git-tree-sha1 = "b3f01117f6276bbaf8a45391ceda4d78fb6eeaa0"
+uuid = "33e6dc65-8f57-5167-99aa-e5a354878fb2"
+version = "0.4.2"
+
 [[MKL_jll]]
 deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
 git-tree-sha1 = "5455aef09b40e5020e1520f551fa3135040d4ed0"
@@ -1277,6 +1283,12 @@ deps = ["Base64", "CEnum", "ImageCore", "IndirectArrays", "OffsetArrays", "libpn
 git-tree-sha1 = "e14c485f6beee0c7a8dcf6128bf70b85f1fe201e"
 uuid = "f57f5aa1-a3ce-4bc8-8ab9-96f992907883"
 version = "0.3.9"
+
+[[PackageCompiler]]
+deps = ["LazyArtifacts", "Libdl", "Pkg", "UUIDs"]
+git-tree-sha1 = "d2f93cc940b4a3d1aba77b266cbd7c7d404568c7"
+uuid = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
+version = "1.6.0"
 
 [[Packing]]
 deps = ["GeometryBasics"]
@@ -1875,6 +1887,12 @@ deps = ["ConstructionBase", "Dates", "LinearAlgebra", "Random"]
 git-tree-sha1 = "a981a8ef8714cba2fd9780b22fd7a469e7aaf56d"
 uuid = "1986cc42-f94f-5a68-af5c-568840ba703d"
 version = "1.9.0"
+
+[[VSL]]
+deps = ["Random"]
+git-tree-sha1 = "2387186947bad0d4a30d7493a4937207522fd91a"
+uuid = "04294c92-b9b2-5258-861c-e23397c8ec5d"
+version = "0.2.0"
 
 [[VectorizationBase]]
 deps = ["ArrayInterface", "CPUSummary", "HostCPUFeatures", "Hwloc", "IfElse", "LayoutPointers", "Libdl", "LinearAlgebra", "SIMDTypes", "Static"]

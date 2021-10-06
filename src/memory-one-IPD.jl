@@ -1,3 +1,5 @@
+using KrylovKit:eigsolve
+
 ## Press-Dyson determinant
 
 # p = P(C|CC, CD, DC, DD)
