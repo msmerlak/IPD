@@ -33,3 +33,18 @@ end
 function π(p::Vector{Float64}, q::Vector{Float64})
     return Δ(p, q, ID_PAYOFFS)/Δ(p, q, ones(4))
 end
+
+
+
+R, S, T, P = ID_PAYOFFS
+function extorsion(p::Vector{Float64})
+    f(q) = (π(p,q) - P)/(π(q,p) - P)
+    χ = map(f, [rand(4) for _ in 1:100])
+    return max(minimum(χ) - 1, 0)
+end
+
+function generosity(p::Vector{Float64})
+    f(q) = (R-π(p,q))/(R - π(q,p))
+    χ = map(f, [rand(4) for _ in 1:100])
+    return max(minimum(χ) - 1, 0)
+end

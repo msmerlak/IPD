@@ -117,7 +117,7 @@ q = subdict(p, [:n, :t, :σ, :multiplicative, :m])
 
 plot_mean_fitness(adata, plotsdir("mixed", string(today()), savename("FITNESS", q, "png")))
 
-### run longer
+### extorsion/generosity
 
 σ = 5e-3
 n = 500
@@ -131,10 +131,13 @@ p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => mu
 
 models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 
-adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 20000, adata = [(:fitness, mean), (:strategy, mean), (:strategy, mean_std), (:share, mean)], 
+adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 10000, adata = [(:fitness, mean), (:strategy, mean), (:strategy, mean_std), (:share, mean)], 
 parallel = true)
 
 q = subdict(p, [:n, :t, :σ, :multiplicative, :m])
 
 
-plot_mean_fitness(adata, plotsdir("mixed", string(today()), savename("FITNESS", q, "png")))
+plot_extorsion(adata, plotsdir("mixed", string(today()), savename("EXTORSION", q, "png")))
+plot_generosity(adata, plotsdir("mixed", string(today()), savename("GENEROSITY", q, "png")))
+
+### 

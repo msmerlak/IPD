@@ -4,7 +4,7 @@ include(srcdir("constants.jl"))
 
 P = last(ID_PAYOFFS)
 
-EXT = [11/13, 1/2, 7/26, 0.]
+EXT = [11 / 13, 1 / 2, 7 / 26, 0.0]
 
 
 q = rand(4)

@@ -1,9 +1,10 @@
 using DrWatson
 @quickactivate
 
-using Plots;
-gr();
+using Plots;gr();
 using InteractiveDynamics
+include(srcdir("memory-one-IPD.jl"))
+
 
 function plot_strategies_3D(adata, filename)
 
@@ -144,6 +145,38 @@ function plot_mean_fitness(adata, filename)
 
 
 
+    plt = current()
+    savefig(filename)
+end
+
+function plot_extorsion(adata, filename)
+
+    p = plot(ylabel = "extorsion", xlabel = "time")
+    for d in groupby(adata, :ensemble)
+        plot!(
+            p,
+            d.step,
+            extorsion.(d.mean_strategy),
+            legend = false,
+            dpi = 300,
+        )
+    end
+    plt = current()
+    savefig(filename)
+end
+
+function plot_generosity(adata, filename)
+
+    p = plot(ylabel = "generosity", xlabel = "time")
+    for d in groupby(adata, :ensemble)
+        plot!(
+            p,
+            d.step,
+            generosity.(d.mean_strategy),
+            legend = false,
+            dpi = 300,
+        )
+    end
     plt = current()
     savefig(filename)
 end
