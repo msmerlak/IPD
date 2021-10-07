@@ -9,11 +9,7 @@ using Random:MersenneTwister
 using NaNMath, StatsBase
 #using VSL
 
-const ID_PAYOFFS = [3., 0., 5., 1.]
 
-RAND = [.25, .25, .25, .25]
-TFT = [1., 0, 1., 0.]
-WSLS = [1., 0., 1., 0.]
 
 mutable struct Mem1Player <: AbstractAgent
     id::Int
@@ -41,9 +37,8 @@ function create_model(p; initial_strategy = RAND, space = nothing, rng)
     model = AgentBasedModel(
         Mem1Player, 
         space, 
-        properties = properties#, 
-        #rng = RandomDevice(properties[:seed])
-        #rng =BasicRandomNumberGenerator(VSL_BRNG_MT19937, 12345)
+        properties = properties, 
+        rng = rng
         )
 
     if model.multiplicative
@@ -96,9 +91,11 @@ end
 
 
 function mutate!(player, model)
+
     player.strategy += rand(model.rng, Normal(0, model.σ), 4)
     window!(player.strategy, model)
-    if model.m > 0 || rand(model.rng, Bernoulli(model.m))
+
+    if model.m > 0 && rand(model.rng, Bernoulli(model.m))
         player.share = !player.share
     end
     return
@@ -118,11 +115,23 @@ end
 #include(srcdir("sampling.jl"))
 function WF_sampling!(model)
 
-    for a in values(model.agents)
+    # compute fitness
+    for a in allagents(model)
         a.fitness = model.selection(a)
         a.scores = Float64[]
     end
 
+    # share fitness among sharers
+    sharers = (a for a in allagents(model) if a.share)
+    non_sharers = (a for a in allagents(model) if !a.share)
+    pooled_fitness = mean([a.fitness for a in sharers])
+    for a in sharers
+        a.fitness = pooled_fitness
+    end
+
+   
+
     Agents.sample!(model, model.n, :fitness)
     model.time += 1
+
 end

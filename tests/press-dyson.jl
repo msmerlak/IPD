@@ -1,7 +1,7 @@
 using DrWatson
 @quickactivate
 
-include("../_research/IPD.jl")
+include("../src/IPD.jl")
 
 ## Eq (5)
 using KrylovKit
