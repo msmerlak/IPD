@@ -1,9 +1,9 @@
 using DrWatson
 
 using Distributed
-using DataFrames, MultivariateStats, CSV, Dates
+using DataFrames, Random, CSV, Dates
 
-include(srcdir("plotting.jl"))
+
 
 mkdir(plotsdir("mixed", string(today())))
 mkdir(datadir("mixed", string(today())))
@@ -17,6 +17,7 @@ PARALLEL && addprocs(PROCESSES)
     include("../src/constants.jl")
 end
 
+include(srcdir("plotting.jl"))
 
 ### different initial conditions
 for σ ∈ (1e-1),  n ∈ (100, 500), t ∈ (5, 10, 20), multiplicative ∈ (true, false)
@@ -109,7 +110,7 @@ p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => mu
 
 models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 
-adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 10000, adata = [(:fitness, mean), (:strategy, mean), (:strategy, mean_std), (:share, mean)], 
+adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 5000, adata = [(:fitness, mean), (:strategy, mean), (:strategy, mean_std), (:share, mean)], 
 parallel = true)
 
 q = subdict(p, [:n, :t, :σ, :multiplicative, :m])
@@ -131,13 +132,13 @@ p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => mu
 
 models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 
-adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 10000, adata = [(:fitness, mean), (:strategy, mean), (:strategy, mean_std), (:share, mean)], 
+adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 10000, adata = [(:fitness, mean), (:strategy, mean), (:cooperation, mean), (:generosity, mean), (:extorsion, mean)], 
 parallel = true)
 
 q = subdict(p, [:n, :t, :σ, :multiplicative, :m])
 
+for Y ∈ (:mean_cooperation, :mean_extorsion, :mean_generosity, :mean_fitness)
 
-plot_extorsion(adata, plotsdir("mixed", string(today()), savename("EXTORSION", q, "png")))
-plot_generosity(adata, plotsdir("mixed", string(today()), savename("GENEROSITY", q, "png")))
+    plot_property(adata, Y, plotsdir("mixed", string(today()), savename(string(Y), q, "png")))
+end
 
-### 
