@@ -4,14 +4,14 @@ using DrWatson
 include(srcdir("memory-one-IPD.jl"))
 
 using Agents
-using Distributions:Normal, Bernoulli
-using Random:MersenneTwister
-using StatsBase:mean
-
+using Distributions: Normal, Bernoulli
+using Random: MersenneTwister
+using StatsBase: mean
+import Entropies
 
 mutable struct Mem1Player <: AbstractAgent
     id::Int
-    pos::NTuple{2, Int}
+    pos::NTuple{2,Int}
     strategy::Vector{Float64}
     scores::Vector{Float64}
     fitness::Float64
@@ -22,52 +22,75 @@ mutable struct Mem1Player <: AbstractAgent
 end
 
 
-function create_model(p; initial_strategy = RAND, space = nothing, compute_metrics = false, rng)
+function create_model(
+    p;
+    initial_strategy = RAND,
+    space = nothing,
+    compute_metrics = false,
+    rng,
+)
 
     properties = deepcopy(p)
 
     properties[:init_strategy] = initial_strategy
     properties[:compute_metrics] = compute_metrics
 
-    if properties[:multiplicative] 
-        properties[:selection] = a -> exp(mean(a.scores)) 
+    if properties[:multiplicative]
+        properties[:selection] = a -> exp(mean(a.scores))
     else
         properties[:selection] = a -> mean(a.scores)
     end
 
-    
-    model = AgentBasedModel(
-        Mem1Player, 
-        space, 
-        properties = properties, 
-        rng = rng
-        )
+
+    model = AgentBasedModel(Mem1Player, space, properties = properties, rng = rng)
 
     if model.multiplicative
         @. model.RSTP = log(model.RSTP + properties[:ϵ])
     end
 
-    
-    if model.space === nothing 
-        for id in 1:model.n
-            add_agent!(Mem1Player(id, (1,1), properties[:init_strategy], Float64[1. ], 0., properties[:init_share], 0., 0., 0.), model)
+
+    if model.space === nothing
+        for id = 1:model.n
+            add_agent!(
+                Mem1Player(
+                    id,
+                    (1, 1),
+                    properties[:init_strategy],
+                    Float64[1.0],
+                    0.0,
+                    properties[:init_share],
+                    0.0,
+                    0.0,
+                    0.0,
+                ),
+                model,
+            )
         end
     else
-        fill_space!(model, properties[:init_strategy], Float64[1. ], 0., properties[:init_share], 0., 0., 0.)
+        fill_space!(
+            model,
+            properties[:init_strategy],
+            Float64[1.0],
+            0.0,
+            properties[:init_share],
+            0.0,
+            0.0,
+            0.0,
+        )
     end
     return model
 end
 
 
-function match!((X, Y)::Tuple{Mem1Player, Mem1Player}, model)
-    
+function match!((X, Y)::Tuple{Mem1Player,Mem1Player}, model)
+
     ## Press-Dyson formula
     Z = Δ(X.strategy, Y.strategy, ones(4))
-    Sx = Δ(X.strategy, Y.strategy, model.RSTP)/Z
-    Sy = Δ(Y.strategy, X.strategy, model.RSTP)/Z
+    Sx = Δ(X.strategy, Y.strategy, model.RSTP) / Z
+    Sy = Δ(Y.strategy, X.strategy, model.RSTP) / Z
 
     ## PD formula breaks down for certain degenerate pairs of strategies
-    if !isfinite(Sx) || !isfinite(Sy)
+    if !isfinite(Sx) || !isfinite(Sy)
 
         Sx = dot(v(X.strategy, Y.strategy), model.RSTP)
         Sy = dot(v(Y.strategy, X.strategy), model.RSTP)
@@ -76,28 +99,31 @@ function match!((X, Y)::Tuple{Mem1Player, Mem1Player}, model)
 
     push!(X.scores, Sx)
     push!(Y.scores, Sy)
-    return 
+    return
 end
 
 
 function play_matches!(player, model)
-        
-        ## pick competitors
-        if model.space === nothing
-            competitors = (competitor.second for competitor in filter(a -> a.second != player, rand(model.rng, model.agents, model.t)))
-        else
-            competitors = nearby_agents(player, model)
-        end
-        
-        ## play matches
-        for competitor in competitors
-            match!((player, competitor), model)
-        end
 
-        ## compute metrics
-        player.cooperation = cooperation(player, competitors)
-        player.generosity = generosity(player, competitors)
-        player.extorsion = extorsion(player, competitors)
+    ## pick competitors
+    if model.space === nothing
+        competitors = (
+            competitor.second for competitor in
+            filter(a -> a.second != player, rand(model.rng, model.agents, model.t))
+        )
+    else
+        competitors = nearby_agents(player, model)
+    end
+
+    ## play matches
+    for competitor in competitors
+        match!((player, competitor), model)
+    end
+
+    ## compute metrics
+    player.cooperation = cooperation(player, competitors)
+    player.generosity = generosity(player, competitors)
+    player.extorsion = extorsion(player, competitors)
 end
 
 
@@ -113,7 +139,7 @@ function mutate!(player, model)
 end
 
 function window!(x, model)
-        @. x = min(max(x, 1e-6*rand(model.rng)), 1. - 1e-6*rand(model.rng))
+    @. x = min(max(x, 1e-6 * rand(model.rng)), 1.0 - 1e-6 * rand(model.rng))
     return
 end
 
@@ -141,7 +167,7 @@ function WF_sampling!(model)
         a.fitness = pooled_fitness
     end
 
-   
+
     Agents.sample!(model, model.n, :fitness)
 
 end

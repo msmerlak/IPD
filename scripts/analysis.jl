@@ -4,12 +4,11 @@ using Distributed
 using DataFrames, Random, CSV, Dates
 
 
-
 mkdir(plotsdir("mixed", string(today())))
 mkdir(datadir("mixed", string(today())))
 
 PARALLEL = true
-PROCESSES = 15
+PROCESSES = Sys.CPU_THREADS - 1
 PARALLEL && addprocs(PROCESSES)
 @everywhere begin
     include("../src/utils.jl")
@@ -125,7 +124,6 @@ n = 500
 t = 10
 multiplicative = false
 
-
 println("σ = $σ, n = $n, t = $t, multiplicative = $multiplicative")
 
 p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
@@ -142,3 +140,42 @@ for Y ∈ (:mean_cooperation, :mean_extorsion, :mean_generosity, :mean_fitness)
     plot_property(adata, Y, plotsdir("mixed", string(today()), savename(string(Y), q, "png")))
 end
 
+
+
+
+
+### save whole population
+
+σ = 5e-3
+n = 500
+t = 10
+multiplicative = false
+
+
+println("σ = $σ, n = $n, t = $t, multiplicative = $multiplicative")
+
+p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+
+models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
+
+adata, _ = ensemblerun!(models, player_step!, WF_sampling!, 5000, adata = [(:fitness, mean), (:strategy, mean_std)], 
+parallel = true)
+
+q = subdict(p, [:n, :t, :σ, :multiplicative, :m])
+
+Y = :mean_std_strategy
+
+plot_property(adata, Y, plotsdir("mixed", string(today()), savename(string(Y), q, "png")))
+
+### entropy
+
+σ, n, t = 5e-3, 500, 10
+init = rand(4)
+multiplicative = false
+
+
+p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+
+model = create_model(p, rng = MersenneTwister())
+
+adata, mdata = run!(model, player_step!, WF_sampling!, 5000, adata = [:strategy])

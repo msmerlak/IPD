@@ -1,12 +1,11 @@
 using DrWatson
 @quickactivate
 
-using Plots, CairoMakie, InteractiveDynamics
+using Plots, InteractiveDynamics
 include(srcdir("memory-one-IPD.jl"))
 
 
 function plot_strategies_3D(adata, filename)
-
 
     p = plot(xlabel = "P(C|CC)", ylabel = "P(C|DC)", zlabel = "Time")
     for d in groupby(adata, :ensemble)
@@ -99,7 +98,7 @@ function plot_strategies_1D(adata, filename)
         plots = (plots..., current())
     end
 
-    plt = plot(plots..., layout = 4)
+    plot(plots..., layout = 4)
     savefig(filename)
 end
 
@@ -119,7 +118,6 @@ function plot_property(adata, property, filename = nothing)
             dpi = 300,
         )
     end
-    #plt = current()
     filename !== nothing && savefig(filename)
     current()
 end
