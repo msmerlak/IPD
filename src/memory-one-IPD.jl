@@ -31,7 +31,7 @@ end
 
 ## faster, using exact result
 
-function Δ(p::Vector{Float64}, q::Vector{Float64}, f::Vector{Float64})
+function Δ(p, q, f)
     return (p[1] * q[1] - 1) * (
         (f[3] * q[3] - (q[2] - 1) * f[2]) * p[4] +
         (p[2] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) - (f[4] * q[3] - f[2] * q[4]) * p[3]
@@ -63,6 +63,7 @@ end
 function  π(p, q)
     return Δ(p, q, ID_PAYOFFS) / Δ(p, q, ones(4))
 end
+π(p) = π(p, p)
 
 R, S, T, P = ID_PAYOFFS
 E(p, q) = (π(p, q) - P) / (π(q, p) - P)
