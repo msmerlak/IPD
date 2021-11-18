@@ -1,4 +1,5 @@
 using DrWatson
+@quickactivate "IPD"
 
 using KrylovKit: eigsolve
 using LinearAlgebra: det, dot
