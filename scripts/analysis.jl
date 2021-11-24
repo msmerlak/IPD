@@ -1,4 +1,4 @@
-using DrWatson
+
 
 using Distributed
 using DataFrames, Random, CSV, Dates
@@ -11,6 +11,12 @@ PARALLEL = true
 PROCESSES = Sys.CPU_THREADS - 1
 PARALLEL && addprocs(PROCESSES)
 @everywhere begin
+    import Pkg
+    Pkg.activate(".")
+end
+@everywhere using DrWatson
+@everywhere begin
+    @quickactivate "IPD"
     include("../src/utils.jl")
     include("../src/IPD.jl")
     include("../src/constants.jl")

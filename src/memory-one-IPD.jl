@@ -1,8 +1,11 @@
 using DrWatson
 @quickactivate "IPD"
 
+#include(srcdir("IPD.jl"))
+
 using KrylovKit: eigsolve
 using LinearAlgebra: det, dot
+using DataFrames
 include(srcdir("constants.jl"))
 ## Press-Dyson determinant
 
@@ -32,7 +35,7 @@ end
 
 ## faster, using exact result
 
-function Δ(p, q, f)
+function Δ(p::Vector, q::Vector, f::Vector)
     return (p[1] * q[1] - 1) * (
         (f[3] * q[3] - (q[2] - 1) * f[2]) * p[4] +
         (p[2] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) - (f[4] * q[3] - f[2] * q[4]) * p[3]
@@ -60,10 +63,63 @@ function Δ(p, q, f)
            q[3]
 end
 
+function π(p::Vector, q::Vector, f = ID_PAYOFFS)
+    return ((p[1] * q[1] - 1) * (
+        (f[3] * q[3] - (q[2] - 1) * f[2]) * p[4] +
+        (p[2] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) - (f[4] * q[3] - f[2] * q[4]) * p[3]
+    ) +
+           (
+               (1 - p[2]) * ((q[1] - 1) * f[4] - f[1] * q[4]) +
+               ((q[1] - 1) * f[2] - f[1] * q[3]) * p[4] +
+               (p[1] - 1) * (f[4] * q[3] - f[2] * q[4])
+           ) *
+           p[3] *
+           q[2] -
+           (
+               (1 - p[2]) * ((q[1] - 1) * f[3] - (q[2] - 1) * f[1]) +
+               ((q[1] - 1) * f[2] - f[1] * q[3]) * p[3] +
+               (p[1] - 1) * (f[3] * q[3] - (q[2] - 1) * f[2])
+           ) *
+           p[4] *
+           q[4] -
+           (
+               (p[1] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) +
+               ((q[1] - 1) * f[3] - (q[2] - 1) * f[1]) * p[4] -
+               ((q[1] - 1) * f[4] - f[1] * q[4]) * p[3]
+           ) *
+           p[2] *
+           q[3])/((p[1] * q[1] - 1) * (
+        (q[3] - (q[2] - 1)) * p[4] +
+        (p[2] - 1) * ((q[2] - 1) - q[4]) - (q[3] - q[4]) * p[3]
+    ) +
+           (
+               (1 - p[2]) * ((q[1] - 1) - q[4]) +
+               ((q[1] - 1) - q[3]) * p[4] +
+               (p[1] - 1) * (q[3] - q[4])
+           ) *
+           p[3] *
+           q[2] -
+           (
+               (1 - p[2]) * ((q[1] - 1) - (q[2] - 1) ) +
+               ((q[1] - 1)  -  q[3]) * p[3] +
+               (p[1] - 1) * ( q[3] - (q[2] - 1) )
+           ) *
+           p[4] *
+           q[4] -
+           (
+               (p[1] - 1) * ((q[2] - 1)  -  q[4]) +
+               ((q[1] - 1)  - (q[2] - 1) ) * p[4] -
+               ((q[1] - 1)  -  q[4]) * p[3]
+           ) *
+           p[2] *
+           q[3])
+end
 
-function  π(p, q)
+function  π0(p, q)
     return Δ(p, q, ID_PAYOFFS) / Δ(p, q, ones(4))
 end
+
+
 π(p) = π(p, p)
 
 R, S, T, P = ID_PAYOFFS
@@ -80,21 +136,25 @@ function absolute_generosity(p::Vector{Float64})
     return max(minimum(χ), 0)
 end
 
-function extorsion(player, competitors::Base.Generator)
+function extorsion(player, competitors)
     χ = map(q -> E(player.strategy, q) - 1, [c.strategy for c in competitors])
     return max(minimum(χ), 0)
 end
 
-function generosity(player, competitors::Base.Generator)
+function generosity(player, competitors)
     χ = map(q -> G(player.strategy, q) - 1, [c.strategy for c in competitors])
     return max(minimum(χ), 0)
 end
 
-function cooperation(player, competitors::Base.Generator)
+function cooperation(player, competitors)
     χ = map(
         q ->
             Δ(player.strategy, q, [1.0, 1.0, 0.0, 0.0]) / Δ(player.strategy, q, ones(4)),
         [c.strategy for c in competitors],
     )
     return mean(χ)
+end
+
+function cooperation(strategy)
+            Δ(strategy, strategy, [1.0, 1.0, 0.0, 0.0]) / Δ(strategy, strategy, ones(4))
 end

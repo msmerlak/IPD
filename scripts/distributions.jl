@@ -4,7 +4,7 @@ using Distributed
 using DataFrames#, Random, CSV, Dates
 
 #PARALLEL = true
-PROCESSES = Sys.CPU_THREADS - 1
+PROCESSES = 10#Sys.CPU_THREADS - 1
 addprocs(PROCESSES)
 
 @everywhere begin
@@ -12,8 +12,6 @@ addprocs(PROCESSES)
     Pkg.activate(".")
 end
 @everywhere using DrWatson
-
-
 
 mkdir(plotsdir("mixed", string(today())))
 mkdir(datadir("mixed", string(today())))
@@ -27,6 +25,7 @@ mkdir(datadir("mixed", string(today())))
 end
 
 include(srcdir("plotting.jl"))
+
 ### distributions
 
 σ, n, t = 5e-3, 500, 10
@@ -80,10 +79,6 @@ mean_fitness = combine(groupby(run, :step), :fitness => mean).fitness_mean
     plot(plts..., layout = layout)
 end
 
-
-/var/folders/sw/z1_4g6g92dg427jfm9_hmsl40000gp/T/jl_BvTQv2.gif
-current()
-p
 
 
    

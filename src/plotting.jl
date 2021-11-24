@@ -5,7 +5,7 @@ using Plots, InteractiveDynamics
 include(srcdir("memory-one-IPD.jl"))
 
 
-function plot_strategies_3D(adata, filename)
+function plot_strategies_3D(adata, filename = nothing)
 
     p = plot(xlabel = "P(C|CC)", ylabel = "P(C|DC)", zlabel = "Time")
     for d in groupby(adata, :ensemble)
@@ -36,10 +36,11 @@ function plot_strategies_3D(adata, filename)
     p24 = current()
 
     plot(p13, p24)
-    savefig(filename)
+    filename !== nothing && savefig(filename)
+    return current()
 end
 
-function plot_strategies_2D(adata, filename)
+function plot_strategies_2D(adata, filename = nothing)
 
 
     p = plot(xlabel = "P(C|CC)", ylabel = "P(C|DC)")
@@ -75,11 +76,12 @@ function plot_strategies_2D(adata, filename)
     p24 = current()
 
     plot(p13, p24)
-    savefig(filename)
+    filename !== nothing && savefig(filename)
+    return current()
 end
 
 
-function plot_strategies_1D(adata, filename)
+function plot_strategies_1D(adata, filename = nothing)
 
     plots = ()
     labels = ("P(C|CC)", "P(C|CD)", "P(C|DC)", "P(C|DD)")
@@ -99,7 +101,8 @@ function plot_strategies_1D(adata, filename)
     end
 
     plot(plots..., layout = 4)
-    savefig(filename)
+    filename !== nothing && savefig(filename)
+    return current()
 end
 
 
@@ -119,5 +122,5 @@ function plot_property(adata, property, filename = nothing)
         )
     end
     filename !== nothing && savefig(filename)
-    current()
+    return current()
 end

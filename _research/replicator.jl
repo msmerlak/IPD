@@ -3,6 +3,11 @@ using DrWatson
 
 using DifferentialEquations
 include(srcdir("IPD.jl"))
+include(srcdir("memory-one-IPD.jl"))
 
-function replicator!(P, p, t)
-    
+using QuadGK
+
+function π(p::Vector, P)
+
+function replicator!(dP, P, params, t)
+end    

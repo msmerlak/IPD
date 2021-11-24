@@ -1,10 +1,13 @@
 using DrWatson
 @quickactivate "IPD"
 
-import Statistics:std
-
+import Statistics:std, var
 #import Clustering:dbscan
 using Agents
+
+
+#mean(x::Vector) = mean(filter(!isnan, x))
+
 
 function subdict(dict, keys)
     subdict = Dict()
@@ -20,4 +23,14 @@ end
 
 function mean_std(X::T) where T<: Base.Generator
     mean(std([x for x in X]))
+end
+
+
+function mean_cooperation(adata::DataFrame)
+    mean(adata.mean_cooperation)
+end
+
+
+function var_cooperation(adata::DataFrame)
+    mean(adata.cooperation)
 end
