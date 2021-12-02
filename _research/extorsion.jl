@@ -2,7 +2,7 @@ using DrWatson
 include(srcdir("memory-one-IPD.jl"))
 include(srcdir("constants.jl"))
 
-P = last(ID_PAYOFFS)
+P = last(RSTP)
 
 EXT = [11 / 13, 1 / 2, 7 / 26, 0.0]
 

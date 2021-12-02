@@ -29,7 +29,7 @@ for σ ∈ (1e-1),  n ∈ (100, 500), t ∈ (5, 10, 20), multiplicative ∈ (tru
 
     println("σ = $σ, n = $n, t = $t, multiplicative = $multiplicative")
 
-    p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+    p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
     models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 
@@ -58,7 +58,7 @@ for σ ∈ (5e-3, 5e-2),  n ∈ (100, 500), t ∈ (5, 10), multiplicative ∈ (t
 
     init = rand(4)
 
-    p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+    p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
     models = [create_model(p; rng = MersenneTwister(x), initial_strategy = init) for x in 1:PROCESSES] 
 
@@ -84,7 +84,7 @@ init = [11/13, 1/2, 7/26, 0.]
 multiplicative = false
 
 
-p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
 models = [create_model(p; rng = MersenneTwister(x), initial_strategy = init) for x in 1:PROCESSES] 
 
@@ -111,7 +111,7 @@ multiplicative = false
 
 println("σ = $σ, n = $n, t = $t, multiplicative = $multiplicative")
 
-p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
 models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 
@@ -132,7 +132,7 @@ multiplicative = false
 
 println("σ = $σ, n = $n, t = $t, multiplicative = $multiplicative")
 
-p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
 models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 
@@ -160,7 +160,7 @@ multiplicative = false
 
 println("σ = $σ, n = $n, t = $t, multiplicative = $multiplicative")
 
-p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
 models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 
@@ -180,7 +180,7 @@ init = rand(4)
 multiplicative = false
 
 
-p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
 model = create_model(p, rng = MersenneTwister())
 

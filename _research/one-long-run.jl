@@ -33,7 +33,7 @@ init = rand(4)
 multiplicative = false
 T = 1_000_000
 
-p = Dict(:RSTP => ID_PAYOFFS, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
+p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
 # model = create_model(p, rng = MersenneTwister())
 models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 

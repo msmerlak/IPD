@@ -1,9 +1,8 @@
 using DrWatson
-@quickactivate "IPD"
 
 #include(srcdir("IPD.jl"))
 
-using KrylovKit: eigsolve
+#using KrylovKit: eigsolve
 using LinearAlgebra: det, dot
 using DataFrames
 include(srcdir("constants.jl"))
@@ -62,8 +61,11 @@ function Δ(p::Vector, q::Vector, f::Vector)
            p[2] *
            q[3]
 end
+# function  π(p, q)
+#     return Δ(p, q, RSTP) / Δ(p, q, ones(4))
+# end
 
-function π(p::Vector, q::Vector, f = ID_PAYOFFS)
+function π(p, q, f = RSTP)
     return ((p[1] * q[1] - 1) * (
         (f[3] * q[3] - (q[2] - 1) * f[2]) * p[4] +
         (p[2] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) - (f[4] * q[3] - f[2] * q[4]) * p[3]
@@ -115,46 +117,23 @@ function π(p::Vector, q::Vector, f = ID_PAYOFFS)
            q[3])
 end
 
-function  π0(p, q)
-    return Δ(p, q, ID_PAYOFFS) / Δ(p, q, ones(4))
-end
 
 
 π(p) = π(p, p)
 
-R, S, T, P = ID_PAYOFFS
+R, S, T, P = RSTP
 E(p, q) = (π(p, q) - P) / (π(q, p) - P)
 G(p, q) = (R - π(p, q)) / (R - π(q, p))
 
-function absolute_extorsion(p::Vector{Float64})
-    χ = map(q -> E(p, q) - 1, [rand(4) for _ = 1:100])
-    return max(minimum(χ), 0)
-end
-
-function absolute_generosity(p::Vector{Float64})
-    χ = map(q -> G(p, q) - 1, [rand(4) for _ = 1:100])
-    return max(minimum(χ), 0)
-end
-
 function extorsion(player, competitors)
-    χ = map(q -> E(player.strategy, q) - 1, [c.strategy for c in competitors])
-    return max(minimum(χ), 0)
+    return max(minimum([E(player.strategy, c.strategy) - 1. for c in competitors]), 0.)
+
 end
 
 function generosity(player, competitors)
-    χ = map(q -> G(player.strategy, q) - 1, [c.strategy for c in competitors])
-    return max(minimum(χ), 0)
+    return max(minimum([G(player.strategy, c.strategy) - 1. for c in competitors]), 0.)
 end
 
 function cooperation(player, competitors)
-    χ = map(
-        q ->
-            Δ(player.strategy, q, [1.0, 1.0, 0.0, 0.0]) / Δ(player.strategy, q, ones(4)),
-        [c.strategy for c in competitors],
-    )
-    return mean(χ)
-end
-
-function cooperation(strategy)
-            Δ(strategy, strategy, [1.0, 1.0, 0.0, 0.0]) / Δ(strategy, strategy, ones(4))
+    return mean([π(player.strategy, c.strategy, [1.0, 1.0, 0.0, 0.0]) for c in competitors])
 end
