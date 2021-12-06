@@ -32,8 +32,8 @@ end
 
 
 
-params = Dict(  :n => 100, 
-                :σ => collect(1e-3:1e-3:1e-2), 
+params = Dict(  :n => 50, 
+                :σ => collect(1e-3:1e-3:5e-3), 
                 :init_strategy => CLASSICAL_STRATEGIES
             )
 
@@ -41,7 +41,7 @@ params = Dict(  :n => 100,
 adata, _ = myparamscan(params, initialize; 
     agent_step! = player_step!, 
     model_step! = WF_sampling!, 
-    n = 500_000, 
+    n = 10000, 
     adata = [(:fitness, mean), (:cooperation, mean), (:cooperation, std), (:strategy, mean), (:strategy, std)], 
     parallel = true
     )
@@ -53,4 +53,4 @@ catch
     @warn "today's directory already exists"
 end
 
-Arrow.write(datadir(string(today()), "four-strategies-n_100.arrow"), adata)
+Arrow.write(datadir(string(today()), "four-strategies-test.arrow"), adata)
