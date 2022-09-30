@@ -1,10 +1,5 @@
 using DrWatson
-
-#include(srcdir("IPD.jl"))
-
-#using KrylovKit: eigsolve
-using LinearAlgebra: det, dot
-using DataFrames
+using LinearAlgebra: det
 
 include(srcdir("constants.jl"))
 
