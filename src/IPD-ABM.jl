@@ -5,7 +5,6 @@ include(srcdir("sample-with-LOD.jl"))
 include(srcdir("constants.jl"))
 
 using Agents
-using Distributions: Normal, Bernoulli
 using Random: GLOBAL_RNG
 using StatsBase: mean
 using StaticArrays
@@ -18,26 +17,22 @@ mutable struct Mem1Player <: AbstractAgent
     scores::Vector{Float64}
     fitness::Float64
     LOD::Vector{Int64}
-    cooperation::Float64
-    generosity::Float64
-    extorsion::Float64
 end
 
 function create_model(
     p;
     space = nothing,
-    compute_metrics = false,
-    LOD = false,
-    rng = GLOBAL_RNG
+    LOD = false
 )
 
     properties = deepcopy(p)
 
-    properties[:compute_metrics] = compute_metrics
     properties[:LOD] = LOD
     properties[:fitness] = a -> mean(a.scores)
 
-    model = AgentBasedModel(Mem1Player, space; properties = properties, rng = rng)
+    model = AgentBasedModel(
+        Mem1Player, space; 
+        properties = properties)
     model.n = Int(model.n)
 
 
@@ -50,10 +45,7 @@ function create_model(
                     model.init_strategy,
                     Float64[1.0],
                     0.0,
-                    Int64[],
-                    0.0,
-                    0.0,
-                    0.0,
+                    Int64[]
                 ),
                 model,
             )
@@ -64,11 +56,8 @@ function create_model(
             model.init_strategy,
             Float64[1.0],
             0.0,
-            Int64[],
-            0.0,
-            0.0,
-            0.0,
-        )
+            Int64[]        
+            )
     end
     return model
 end
@@ -97,22 +86,14 @@ function play_matches!(player, model)
     for competitor in competitors
         match!((player, competitor), model)
     end
-
-    ## compute metrics
-    if model.compute_metrics
-        player.cooperation = cooperation(player, competitors)
-    end
 end
 
 
 function mutate!(player, model)
-    jiggle!(player.strategy, model.σ, model.rng)
+    player.strategy .+=  σ * (2*rand(model.rng, MVector{4}) .- 1)
     chop!(player.strategy)
 end
 
-function jiggle!(x::MVector{4}, σ, rng)
-    x .+= σ * (2*rand(rng, MVector{4}) .- 1)
-end
 
 function chop!(x, ϵ = 1e-9)
     @. x = min(max(x, ϵ), 1.0 - ϵ)

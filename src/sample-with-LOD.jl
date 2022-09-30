@@ -25,7 +25,7 @@ function sample_with_LOD!(
     nagents(model) > 0 || return
     org_ids = collect(keys(model.agents))
     if weight !== nothing
-        weights = Weights([get_data(a, weight, identity) for a in values(model.agents)])
+        weights = Weights([Agents.get_data(a, weight, identity) for a in values(model.agents)])
         newids = sample(model.rng, org_ids, weights, n, replace = replace)
     else
         newids = sample(model.rng, org_ids, n, replace = replace)
@@ -35,19 +35,18 @@ end
 
 "Used in sample!"
 function add_newids!(model, org_ids, newids)
-    n = nextid(model)
     for id in org_ids
         if !in(id, newids)
             kill_agent!(model.agents[id], model)
         else
             noccurances = count(x -> x == id, newids)
-            for t in 2:noccurances
+            for t in 1:noccurances
                 newagent = deepcopy(model.agents[id])
-                newagent.id = n
+                newagent.id = nextid(model)
                 push!(newagent.LOD, id)
                 add_agent_pos!(newagent, model)
-                n += 1
             end
+            kill_agent!(model.agents[id], model)
         end
     end
 end

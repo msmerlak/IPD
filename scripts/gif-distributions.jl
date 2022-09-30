@@ -1,26 +1,9 @@
-using DrWatson
-@quickactivate "IPD"
-include("../src/utils.jl")
-include("../src/IPD-ABM.jl")
-include("../src/constants.jl")
+
 
 using StatsPlots
 
-σ, n = 5e-3, 20
-init = rand(4)
-T = 500_000
-
-
-p = Dict(:RSTP => [3.0, 0.0, 5.0, 1.0], :n => n, :σ => σ, :init_strategy => init)
-model = create_model(p; compute_metrics = false)
-
-run, _ = run!(model, player_step!, WF_sampling!, T, adata = [:strategy, :fitness, :cooperation])
-
-mean_fitness = combine(groupby(run, :step), :fitness => mean).fitness_mean
-plot(mean_fitness)
-
 # @df combine(groupby(run, :step), :fitness => mean) plot(:fitness_mean)
-# @df combine(groupby(run, :step), :cooperation => mean) plot!(:cooperation_mean)
+
 @gif for t = 6500:1:7000
     plts = []
     push!(plts,
@@ -32,7 +15,6 @@ plot(mean_fitness)
             )
     plot(plts...)
 end
-
 
 ####
 @gif for t = 1:100:T
