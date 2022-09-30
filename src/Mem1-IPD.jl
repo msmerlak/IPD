@@ -5,9 +5,10 @@ using DrWatson
 #using KrylovKit: eigsolve
 using LinearAlgebra: det, dot
 using DataFrames
-include(srcdir("constants.jl"))
-## Press-Dyson determinant
 
+include(srcdir("constants.jl"))
+
+## Press-Dyson determinant
 # p = P(C|CC, CD, DC, DD)
 
 function D(p::Vector{Float64}, q::Vector{Float64}, f::Vector{Float64})
@@ -34,35 +35,36 @@ end
 
 ## faster, using exact result
 
-function Δ(p::Vector, q::Vector, f::Vector)
-    return (p[1] * q[1] - 1) * (
-        (f[3] * q[3] - (q[2] - 1) * f[2]) * p[4] +
-        (p[2] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) - (f[4] * q[3] - f[2] * q[4]) * p[3]
-    ) +
-           (
-               (1 - p[2]) * ((q[1] - 1) * f[4] - f[1] * q[4]) +
-               ((q[1] - 1) * f[2] - f[1] * q[3]) * p[4] +
-               (p[1] - 1) * (f[4] * q[3] - f[2] * q[4])
-           ) *
-           p[3] *
-           q[2] -
-           (
-               (1 - p[2]) * ((q[1] - 1) * f[3] - (q[2] - 1) * f[1]) +
-               ((q[1] - 1) * f[2] - f[1] * q[3]) * p[3] +
-               (p[1] - 1) * (f[3] * q[3] - (q[2] - 1) * f[2])
-           ) *
-           p[4] *
-           q[4] -
-           (
-               (p[1] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) +
-               ((q[1] - 1) * f[3] - (q[2] - 1) * f[1]) * p[4] -
-               ((q[1] - 1) * f[4] - f[1] * q[4]) * p[3]
-           ) *
-           p[2] *
-           q[3]
-end
+# function Δ(p::Vector, q::Vector, f::Vector)
+#     return (p[1] * q[1] - 1) * (
+#         (f[3] * q[3] - (q[2] - 1) * f[2]) * p[4] +
+#         (p[2] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) - (f[4] * q[3] - f[2] * q[4]) * p[3]
+#     ) +
+#            (
+#                (1 - p[2]) * ((q[1] - 1) * f[4] - f[1] * q[4]) +
+#                ((q[1] - 1) * f[2] - f[1] * q[3]) * p[4] +
+#                (p[1] - 1) * (f[4] * q[3] - f[2] * q[4])
+#            ) *
+#            p[3] *
+#            q[2] -
+#            (
+#                (1 - p[2]) * ((q[1] - 1) * f[3] - (q[2] - 1) * f[1]) +
+#                ((q[1] - 1) * f[2] - f[1] * q[3]) * p[3] +
+#                (p[1] - 1) * (f[3] * q[3] - (q[2] - 1) * f[2])
+#            ) *
+#            p[4] *
+#            q[4] -
+#            (
+#                (p[1] - 1) * ((q[2] - 1) * f[4] - f[3] * q[4]) +
+#                ((q[1] - 1) * f[3] - (q[2] - 1) * f[1]) * p[4] -
+#                ((q[1] - 1) * f[4] - f[1] * q[4]) * p[3]
+#            ) *
+#            p[2] *
+#            q[3]
+# end
 # function  π(p, q)
 #     return Δ(p, q, RSTP) / Δ(p, q, ones(4))
+
 # end
 
 function π(p, q, f = RSTP)

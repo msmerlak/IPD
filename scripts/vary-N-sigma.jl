@@ -1,10 +1,8 @@
-
-
 using Distributed
 using DataFrames, CSV, Dates, Random, RandomNumbers
 
 #PARALLEL = true
-PROCESSES = 10#Sys.CPU_THREADS - 1
+PROCESSES = Sys.CPU_THREADS - 1
 addprocs(PROCESSES)
 
 @everywhere begin
@@ -23,11 +21,11 @@ mkdir(datadir("mixed", string(today())))
     include("../src/constants.jl")
 end
 
-include(srcdir("plotting.jl"))
+#include(srcdir("plotting.jl"))
 using StatsPlots, StatsBase, Query, Statistics
 
 @everywhere function initialize(; n, σ)
-    p = Dict(:RSTP => RSTP, :n => n, :t => 0, :σ => σ, :multiplicative => false, :ϵ => 1e-10, :init_share => false, :m => 0.)
+    p = Dict(:RSTP => RSTP, :n => n, :σ => σ)
     return create_model(p; initial_strategy = rand(4))
 end
 

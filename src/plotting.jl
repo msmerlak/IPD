@@ -2,7 +2,7 @@ using DrWatson
 @quickactivate
 
 using Plots, InteractiveDynamics
-include(srcdir("memory-one-IPD.jl"))
+include(srcdir("Mem1-IPD.jl"))
 
 
 function plot_strategies_3D(adata, filename = nothing)

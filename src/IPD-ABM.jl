@@ -1,6 +1,6 @@
 using DrWatson
 
-include(srcdir("memory-one-IPD.jl"))
+include(srcdir("Mem1-IPD.jl"))
 include(srcdir("sample-with-LOD.jl"))
 include(srcdir("constants.jl"))
 
@@ -28,7 +28,6 @@ function create_model(
     space = nothing,
     compute_metrics = false,
     LOD = false,
-    RSTP = RSTP,
     rng = GLOBAL_RNG
 )
 
@@ -36,10 +35,9 @@ function create_model(
 
     properties[:compute_metrics] = compute_metrics
     properties[:LOD] = LOD
-    properties[:RSTP] = RSTP
-    properties[:selection] = a -> mean(a.scores)
+    properties[:fitness] = a -> mean(a.scores)
 
-    model = AgentBasedModel(Mem1Player, space, properties = properties, rng = rng)
+    model = AgentBasedModel(Mem1Player, space; properties = properties, rng = rng)
     model.n = Int(model.n)
 
 
@@ -103,23 +101,21 @@ function play_matches!(player, model)
     ## compute metrics
     if model.compute_metrics
         player.cooperation = cooperation(player, competitors)
-        #player.generosity = generosity(player, competitors)
-        #player.extorsion = extorsion(player, competitors)
     end
 end
 
 
 function mutate!(player, model)
     jiggle!(player.strategy, model.σ, model.rng)
-    window!(player.strategy)
+    chop!(player.strategy)
 end
 
 function jiggle!(x::MVector{4}, σ, rng)
     x .+= σ * (2*rand(rng, MVector{4}) .- 1)
 end
 
-function window!(x)
-    @. x = min(max(x, 1e-9), 1.0 - 1e-9)
+function chop!(x, ϵ = 1e-9)
+    @. x = min(max(x, ϵ), 1.0 - ϵ)
 end
 
 function player_step!(player, model)
@@ -131,7 +127,7 @@ function WF_sampling!(model)
 
     # compute fitness and reset scores etc
     for a in allagents(model)
-        a.fitness = model.selection(a)
+        a.fitness = model.fitness(a)
         a.scores = Float64[]
         sizehint!(a.scores, model.n^2)
     end

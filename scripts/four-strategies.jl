@@ -31,9 +31,8 @@ end
 end
 
 
-
-params = Dict(  :n => 100, 
-                :σ => collect(1e-3:1e-3:1e-2), 
+params = Dict(  :n => [100, 200], 
+                :σ => collect(1e-3:1e-3:5e-2), 
                 :init_strategy => CLASSICAL_STRATEGIES
             )
 
