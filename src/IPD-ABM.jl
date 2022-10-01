@@ -17,16 +17,19 @@ mutable struct Mem1Player <: AbstractAgent
     scores::Vector{Float64}
     fitness::Float64
     LOD::Vector{Int64}
+    vulnerability::Float64
 end
 
 function create_model(
     p;
     space = nothing,
-    LOD = false
+    LOD = false,
+    reactive_only = false 
 )
 
     properties = deepcopy(p)
 
+    properties[:reactive_only] = reactive_only
     properties[:LOD] = LOD
     properties[:fitness] = a -> mean(a.scores)
 
@@ -44,8 +47,9 @@ function create_model(
                     (1, 1),
                     model.init_strategy,
                     Float64[1.0],
-                    0.0,
-                    Int64[]
+                    NaN,
+                    Int64[],
+                    NaN
                 ),
                 model,
             )
@@ -55,8 +59,9 @@ function create_model(
             model,
             model.init_strategy,
             Float64[1.0],
-            0.0,
-            Int64[]        
+            NaN,
+            Int64[],
+            NaN        
             )
     end
     return model
@@ -101,6 +106,10 @@ end
 
 function player_step!(player, model)
     mutate!(player, model)
+    player.vulnerability = 1- robustness(player, model)
+    if model.reactive_only
+        player.strategy[[1, 3]] .= player.strategy[[2, 4]]
+    end
     play_matches!(player, model)
 end
 

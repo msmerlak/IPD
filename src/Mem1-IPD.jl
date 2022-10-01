@@ -134,3 +134,5 @@ end
 function cooperation(player, competitors)
     return mean([π(player.strategy, c.strategy, [1.0, 1.0, 0.0, 0.0]) for c in competitors])
 end
+
+robustness(player, model) = π(player.strategy, ALLD, model.RSTP)

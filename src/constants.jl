@@ -4,6 +4,7 @@ RSTP = [3., 0., 5., 1.]
 
 RAND = MVector{4}([.25, .25, .25, .25])
 
+ALLD = MVector{4}([0., 0., 0., 0.])
 TFT = MVector{4}([1., 0, 1., 0.])
 WSLS = MVector{4}([1., 0., 0., 1.])
 
