@@ -9,11 +9,10 @@ using Random: GLOBAL_RNG
 using StatsBase: mean
 using StaticArrays
 
-
 mutable struct Mem1Player <: AbstractAgent
     id::Int
     pos::NTuple{2,Int}
-    strategy::MVector{4, Float64}
+    strategy::MVector{4,Float64}
     scores::Vector{Float64}
     fitness::Float64
     LOD::Vector{Int64}
@@ -22,9 +21,9 @@ end
 
 function create_model(
     p;
-    space = nothing,
-    LOD = false,
-    reactive_only = false 
+    space=nothing,
+    LOD=false,
+    reactive_only=false
 )
 
     properties = deepcopy(p)
@@ -34,10 +33,9 @@ function create_model(
     properties[:fitness] = a -> mean(a.scores)
 
     model = AgentBasedModel(
-        Mem1Player, space; 
-        properties = properties)
+        Mem1Player, space;
+        properties=properties)
     model.n = Int(model.n)
-
 
     if model.space === nothing
         for id = 1:model.n
@@ -61,8 +59,8 @@ function create_model(
             Float64[1.0],
             NaN,
             Int64[],
-            NaN        
-            )
+            NaN
+        )
     end
     return model
 end
@@ -95,18 +93,18 @@ end
 
 
 function mutate!(player, model)
-    player.strategy .+=  σ * (2*rand(model.rng, MVector{4}) .- 1)
+    player.strategy .+= σ * (2 * rand(model.rng, MVector{4}) .- 1)
     chop!(player.strategy)
 end
 
 
-function chop!(x, ϵ = 1e-9)
+function chop!(x, ϵ=1e-9)
     @. x = min(max(x, ϵ), 1.0 - ϵ)
 end
 
 function player_step!(player, model)
     mutate!(player, model)
-    player.vulnerability = 1- robustness(player, model)
+    player.vulnerability = 1 - robustness(player, model)
     if model.reactive_only
         player.strategy[[1, 3]] .= player.strategy[[2, 4]]
     end
