@@ -29,7 +29,7 @@ for σ ∈ (1e-1),  n ∈ (100, 500), t ∈ (5, 10, 20), multiplicative ∈ (tru
 
     println("σ = $σ, n = $n, t = $t, multiplicative = $multiplicative")
 
-    p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-s10, :init_share => false, :m => 0.)
+    p = Dict(:RSTP => RSTP, :n => n, :t => t, :σ => σ, :multiplicative => multiplicative, :ϵ => 1e-10, :init_share => false, :m => 0.)
 
     models = [create_model(p; rng = MersenneTwister(rand(UInt)), initial_strategy = rand(4)) for _ in 1:PROCESSES] 
 

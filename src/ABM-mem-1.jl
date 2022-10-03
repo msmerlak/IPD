@@ -15,7 +15,7 @@ mutable struct Mem1Player <: AbstractAgent
     strategy::MVector{4,Float64}
     scores::Vector{Float64}
     fitness::Float64
-    LOD::Vector{Int64} # Line Of Descent
+    LOD::Vector{Int64}
     vulnerability::Float64
 end
 
